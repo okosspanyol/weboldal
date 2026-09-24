@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from '$app/paths';
 	import { teacher } from '$lib/config';
 	import Boltiv from '$lib/components/Boltiv.svelte';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
@@ -9,7 +10,7 @@
 <section id="rolam" class="szakasz rolam" aria-labelledby="rolam-cim">
 	<div class="wrap racs">
 		<div class="kep">
-			<Boltiv src={teacher.photos.about} alt="{teacher.firstName} portréja" felirat="¡Hola!" vilagos />
+			<Boltiv src={teacher.photos.about && asset(teacher.photos.about)} alt="{teacher.firstName} portréja" felirat="¡Hola!" vilagos />
 		</div>
 
 		<div class="tartalom">

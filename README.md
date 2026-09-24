@@ -1,7 +1,8 @@
 # OKOSspanyol weboldal
 
 Élő, 30 perces online üzleti spanyol órák weboldala: BGE szóbeli vizsgafelkészítés és munka Spanyolországban.
-SvelteKit + Svelte 5, statikus oldalként épül, így bármilyen tárhelyre feltölthető.
+SvelteKit + Svelte 5, statikus oldalként épül, és GitHub Actions teszi ki a GitHub Pagesre:
+**https://okosspanyol.github.io/weboldal/**
 
 Az oldal az **OKOSspanyol arculat** (krém alap, terrakotta kiemelés, mustársárga foglalás gomb, Lora + Poppins, boltív)
 és az **OKOSspanyol weboldal – szövegek** dokumentum alapján készült, kiegészítve a marketingterv weboldal-részével
@@ -51,7 +52,8 @@ Ami még nincs meg, maradhat üresen (`''`) — az oldal akkor is rendesen műk�
 1. A hírlevélküldőben hozz létre egy beágyazható űrlapot, és másold ki az űrlap `action` címét a `newsletter.action`-be.
 2. A `src/lib/szakaszok/Hirlevel.svelte` fájlban igazítsd a mezők `name="…"` értékét ahhoz, amit a szolgáltató vár
    (pl. MailerLite-nál `fields[name]`, `fields[email]`; Mailchimpnél `FNAME`, `EMAIL`).
-3. Sikeres feliratkozás utáni átirányításnak add meg: `https://okosspanyol.hu/koszonjuk`.
+3. Sikeres feliratkozás utáni átirányításnak add meg: `https://okosspanyol.github.io/weboldal/koszonjuk`
+   (saját domainnél `https://okosspanyol.hu/koszonjuk`).
 
 ### Vízszintes logó
 
@@ -64,18 +66,32 @@ A kör logó (`static/logo-kor.png`) a böngészőfül ikonja és a lábléc ele
 Az **Adatkezelési tájékoztató**, az **ÁSZF** és az **Impresszum** sablon (`src/routes/adatkezeles`, `aszf`, `impresszum`).
 Töltsd ki a zárójeles részeket, és közzététel előtt nézesd át szakemberrel vagy a könyvelőddel.
 
-## Feltöltés (élesítés)
+## Élesítés: GitHub Pages
+
+Az oldal címe: **https://okosspanyol.github.io/weboldal/**
+
+A `.github/workflows/deploy.yml` minden feltöltés (push) után magától felépíti és kiteszi az oldalt.
+Ez a `main` és a `claude/loving-carson-nlbm20` ágra érvényes. Kézzel is indítható:
+**Actions** fül → **Weboldal kitétele (GitHub Pages)** → **Run workflow**.
+
+**Egyszeri beállítás** (ezt csak te tudod megtenni a GitHubon):
+**Settings → Pages → Build and deployment → Source: „GitHub Actions”**.
+Utána az Actions fülön indítsd újra a legutóbbi futást (vagy tölts fel bármilyen módosítást).
+
+Helyben így nézheted meg a kész változatot:
 
 ```sh
 npm run build    # a kész oldal a build/ mappába kerül
-npm run preview  # megnézheted a kész változatot
+npm run preview  # http://localhost:4173/weboldal/
 ```
 
-A `build/` mappa tartalmát bármilyen tárhelyre feltöltheted (pl. FTP-vel). Kényelmesebb, ha a tárhely közvetlenül
-ebből a GitHub-tárolóból épít (pl. Netlify, Cloudflare Pages vagy Vercel): ilyenkor minden módosítás után magától frissül.
-Beállítás: build parancs `npm run build`, kimeneti mappa `build`.
+### Saját domain később (pl. okosspanyol.hu)
 
-Ha nem az `okosspanyol.hu` lesz a cím, írd át a `site.url`-t a `config.ts`-ben és a `static/robots.txt`-ben.
+1. A `src/lib/config.ts`-ben írd át: `url: 'https://okosspanyol.hu'` — ebből magától eltűnik a `/weboldal` alútvonal.
+2. Hozz létre egy `static/CNAME` fájlt, benne egyetlen sor: `okosspanyol.hu`.
+3. GitHubon: **Settings → Pages → Custom domain**: `okosspanyol.hu`, és pipáld be az **Enforce HTTPS**-t.
+4. A domain szolgáltatódnál állítsd be a DNS-t a GitHub leírása szerint (A rekordok a GitHub Pages IP-címeire,
+   vagy `www` esetén CNAME az `okosspanyol.github.io`-ra).
 
 ## Felépítés
 
@@ -91,6 +107,8 @@ src/
 static/
   logo-kor.png            kör logó (böngészőfül ikon)
   og-kep.png              megosztáskor megjelenő kép (Facebook, Messenger)
+.github/workflows/
+  deploy.yml              felépítés és kitétel a GitHub Pagesre
   kepek/                  ide jönnek a saját fotók
 ```
 

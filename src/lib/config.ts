@@ -6,8 +6,11 @@
  * az oldal ilyenkor is rendesen működik, csak a hozzá tartozó rész egyszerűbb formában jelenik meg.
  */
 export const site = {
-	/** A weboldal végleges címe, perjel nélkül (a megosztási előnézethez és a keresőkhöz kell). */
-	url: 'https://okosspanyol.hu',
+	/**
+	 * A weboldal címe, a végén perjel nélkül. Ebből számolódik az alútvonal is (itt: /weboldal).
+	 * Saját domainnél írd át pl. 'https://okosspanyol.hu'-ra (lásd README: Saját domain).
+	 */
+	url: 'https://okosspanyol.github.io/weboldal',
 
 	/** Böngészőfül és Google-találat címe. */
 	title: 'Üzleti spanyol online — 30 perces beszédgyakorló órák | OKOSspanyol',

@@ -1,6 +1,7 @@
 <!--
 	Köszönő oldal a hírlevél-feliratkozás után.
-	A hírlevélküldőben ezt a címet add meg átirányításnak: https://okosspanyol.hu/koszonjuk
+	A hírlevélküldőben átirányításnak a weboldal címét add meg /koszonjuk végződéssel,
+	pl. https://okosspanyol.github.io/weboldal/koszonjuk
 -->
 <script lang="ts">
 	import JogiOldal from '$lib/components/JogiOldal.svelte';

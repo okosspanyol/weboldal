@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from '$app/paths';
 	import { teacher } from '$lib/config';
 	import Boltiv from '$lib/components/Boltiv.svelte';
 	import FoglalasGomb from '$lib/components/FoglalasGomb.svelte';
@@ -35,7 +36,7 @@
 
 		<div class="kep">
 			<Boltiv
-				src={teacher.photos.hero}
+				src={teacher.photos.hero && asset(teacher.photos.hero)}
 				alt="{teacher.firstName}, az OKOSspanyol tanára"
 				felirat="¿Hablamos?"
 				kiemelt

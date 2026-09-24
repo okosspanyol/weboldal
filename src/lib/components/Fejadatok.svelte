@@ -10,7 +10,8 @@
 		indexelheto = true
 	}: { cim?: string; leiras?: string; megosztas?: string; indexelheto?: boolean } = $props();
 
-	const cimLink = $derived(site.url + page.url.pathname);
+	// Az útvonal az alútvonal (pl. /weboldal) nélkül, így a site.url-lel együtt adja a teljes címet.
+	const cimLink = $derived(site.url + (page.route.id ?? '/'));
 	const kep = `${site.url}/og-kep.png`;
 </script>
 

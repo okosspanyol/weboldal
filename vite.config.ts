@@ -1,6 +1,13 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { site } from './src/lib/config';
+
+// Alútvonal a weboldal címéből: 'https://okosspanyol.github.io/weboldal' → '/weboldal', saját domainnél ''.
+// Fejlesztés közben (npm run dev) mindig a gyökérből fut.
+const base = (
+	process.argv.includes('dev') ? '' : new URL(site.url).pathname.replace(/\/$/, '')
+) as '' | `/${string}`;
 
 export default defineConfig({
 	plugins: [
@@ -12,7 +19,9 @@ export default defineConfig({
 			},
 
 			// Statikus oldal: a `npm run build` után a `build/` mappa bármilyen tárhelyre feltölthető.
-			adapter: adapter({ fallback: '404.html' })
+			adapter: adapter({ fallback: '404.html' }),
+
+			paths: { base }
 		})
 	]
 });
