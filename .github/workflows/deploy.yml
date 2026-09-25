@@ -31,6 +31,10 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    # „shell: bash” = pipefail is: ha a wrangler hibát dob, a lépés akkor is elbukik, ha a kimenetét továbbadjuk.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
 
@@ -63,9 +67,15 @@ jobs:
       - name: Kitétel
         id: kitetel
         run: |
-          npx wrangler deploy | tee kitetel.log
+          if ! npx wrangler deploy 2>&1 | tee kitetel.log; then
+            if grep -q 'register a workers.dev subdomain' kitetel.log; then
+              echo "::error::A Cloudflare-fiókodhoz még nincs workers.dev aldomain. Nyisd meg: Cloudflare → Workers & Pages (vagy https://dash.cloudflare.com → Compute (Workers) → Workers & Pages), válassz egy aldomaint, majd futtasd újra ezt a kitételt."
+            fi
+            exit 1
+          fi
           url=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' kitetel.log | head -n1)
           echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "::notice::A weboldal kint van: ${url:-(saját domain)} — szerkesztés: ${url}/admin"
 
       - name: Admin jelszó
         env:

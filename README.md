@@ -70,8 +70,8 @@ A `.github/workflows/deploy.yml` minden feltöltés (push) után felépíti és 
 
 ### Egyszeri beállítás
 
-1. **Cloudflare-fiók** (ingyenes): <https://dash.cloudflare.com/sign-up>. Nyisd meg egyszer a **Workers & Pages** oldalt,
-   hogy a fiók kapjon egy `*.workers.dev` aldomaint.
+1. **Cloudflare-fiók** (ingyenes): <https://dash.cloudflare.com/sign-up>. Nyisd meg a **Workers & Pages** oldalt,
+   és **válassz egy `*.workers.dev` aldomaint** (enélkül a Cloudflare nem engedi feltenni a Workert).
 2. **API token**: Cloudflare → *My Profile → API Tokens → Create Token* → „**Edit Cloudflare Workers**” sablon,
    és adj hozzá egy sort: *Account → D1 → Edit*. Másold ki a tokent.
 3. **Fiókazonosító (Account ID)**: a Cloudflare *Workers & Pages* oldalán jobb oldalt.
