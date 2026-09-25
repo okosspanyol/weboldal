@@ -1,18 +1,22 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { resolve } from '$app/paths';
+	import { oldal } from '$lib/tartalom/kontextus';
+
+	const o = oldal();
+	const h = $derived(o.t.hibaoldal);
+	const v = $derived({ status: String(page.status) });
 </script>
 
 <svelte:head>
-	<title>Nem található | OKOSspanyol</title>
+	<title>{o.sima(h.cim, v)} | OKOSspanyol</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <section class="wrap hiba">
-	<p class="es elotag">¡Uy! Error {page.status}</p>
-	<h1>Ez az oldal nem található.</h1>
-	<p>Lehet, hogy elírás van a címben, vagy az oldal már nem létezik.</p>
-	<a class="gomb gomb-masodlagos" href={resolve('/')}>Vissza a főoldalra</a>
+	<p class="es elotag">{@html o.sor(h.elotag, v)}</p>
+	<h1>{@html o.sor(h.cim, v)}</h1>
+	<p>{@html o.sor(h.szoveg, v)}</p>
+	<a class="gomb gomb-masodlagos" href="/">{o.sima(h.gomb, v)}</a>
 </section>
 
 <style>

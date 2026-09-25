@@ -1,88 +1,88 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { contact, hasEmail, newsletter } from '$lib/config';
+	import type { HirlevelAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { emailErvenyes } from '$lib/tartalom/szoveg';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const levelLink = `mailto:${contact.email}?subject=${encodeURIComponent('Értesítést kérek az új anyagokról')}`;
+	let { adat, horgony = 'hirlevel' }: { adat: HirlevelAdat; horgony?: string } = $props();
+	const o = oldal();
+	const email = $derived(o.t.altalanos.email);
+	const levelLink = $derived(`mailto:${email}?subject=${encodeURIComponent(o.sima(adat.levelTargy))}`);
+	const action = $derived(/^https:\/\//i.test(adat.action.trim()) ? adat.action.trim() : '');
 </script>
 
-<section id="hirlevel" class="szakasz hirlevel" aria-labelledby="hirlevel-cim">
+<section
+	id={horgony || undefined}
+	class="szakasz hirlevel"
+	aria-labelledby="{horgony || 'hirlevel'}-cim"
+>
 	<div class="wrap racs">
 		<div class="szoveg">
-			<SzakaszCim id="hirlevel-cim" elotag="Próximamente">Készülsz az írásbelire is?</SzakaszCim>
-			<p class="olvashato">
-				Az üzleti spanyol írásbeli vizsgarészhez is készül a tananyagom, jelenleg a fejlesztésén
-				dolgozom. Ha szeretnéd elsőként megtudni, mikor indul, iratkozz fel a hírlevelemre. Addig is
-				hasznos szóbeli és munkavállalási tippeket küldök.
-			</p>
+			<SzakaszCim id="{horgony || 'hirlevel'}-cim" elotag={adat.elotag} cim={adat.cim} />
+			<p class="olvashato">{@html o.sor(adat.szoveg)}</p>
 		</div>
 
-		{#if newsletter.action}
-			<form method="POST" action={newsletter.action} class="urlap">
+		{#if action}
+			<form method="POST" {action} class="urlap">
 				<div class="mezok">
 					<label>
-						<span>Keresztnév</span>
-						<input type="text" name="keresztnev" autocomplete="given-name" required />
+						<span>{o.sima(adat.nevCimke)}</span>
+						<input type="text" name={adat.nevMezo} autocomplete="given-name" required />
 					</label>
 					<label>
-						<span>E-mail cím</span>
-						<input type="email" name="email" autocomplete="email" required />
+						<span>{o.sima(adat.emailCimke)}</span>
+						<input type="email" name={adat.emailMezo} autocomplete="email" required />
 					</label>
 				</div>
 
-				<fieldset>
-					<legend>Miről kérsz értesítést?</legend>
-					<label class="jelolo">
-						<input type="checkbox" name="ertesites" value="szobeli-anyag" />
-						Letölthető BGE szóbeli anyag és nyelvtani összefoglaló
-					</label>
-					<label class="jelolo">
-						<input type="checkbox" name="ertesites" value="gyakorlofelulet" />
-						Online gyakorlófelület (írásbeli rész, feladatok, videós nyelvtan, szókártyák)
-					</label>
-				</fieldset>
+				{#if adat.ertesitesek.length}
+					<fieldset>
+						<legend>{o.sima(adat.ertesitesCim)}</legend>
+						{#each adat.ertesitesek as opcio, i (i)}
+							<label class="jelolo">
+								<input type="checkbox" name={adat.ertesitesMezo} value={opcio.ertek} />
+								{o.sima(opcio.szoveg)}
+							</label>
+						{/each}
+					</fieldset>
+				{/if}
 
-				<fieldset>
-					<legend>Mire készülsz?</legend>
-					<label class="jelolo">
-						<input type="checkbox" name="cel" value="vizsga" />
-						Vizsgára készülök
-					</label>
-					<label class="jelolo">
-						<input type="checkbox" name="cel" value="munka" />
-						Spanyolországban szeretnék dolgozni
-					</label>
-				</fieldset>
+				{#if adat.celok.length}
+					<fieldset>
+						<legend>{o.sima(adat.celCim)}</legend>
+						{#each adat.celok as opcio, i (i)}
+							<label class="jelolo">
+								<input type="checkbox" name={adat.celMezo} value={opcio.ertek} />
+								{o.sima(opcio.szoveg)}
+							</label>
+						{/each}
+					</fieldset>
+				{/if}
 
 				<label class="jelolo hozzajarulas">
 					<input type="checkbox" name="hozzajarulas" value="igen" required />
-					<span>
-						Hozzájárulok, hogy e-mailben értesítést küldj. Elolvastam az
-						<a href={resolve('/adatkezeles')}>Adatkezelési tájékoztatót</a>.
-					</span>
+					<span>{@html o.sor(adat.hozzajarulas)}</span>
 				</label>
 
-				<button type="submit" class="gomb gomb-masodlagos kuld">Kérem az értesítést</button>
-				<p class="apro halk">
-					Nem küldök kéretlen leveleket, és bármikor egy kattintással leiratkozhatsz.
-				</p>
+				<button type="submit" class="gomb gomb-masodlagos kuld">{o.sima(adat.gomb)}</button>
+				<p class="apro halk">{@html o.sor(adat.apro)}</p>
 			</form>
 		{:else}
 			<div class="urlap egyszeru">
-				<p class="mi-keszul">Min dolgozom most?</p>
-				<ul class="keszulo">
-					<li>Letölthető BGE szóbeli anyag és nyelvtani összefoglaló</li>
-					<li>Online gyakorlófelület (írásbeli rész, feladatok, videós nyelvtan, szókártyák)</li>
-				</ul>
-				{#if hasEmail()}
-					<p>Írj egy rövid levelet, és felírlak az értesítési listára.</p>
-					<a class="gomb gomb-masodlagos" href={levelLink}>Kérem az értesítést</a>
-					<p class="apro halk">
-						Nem küldök kéretlen leveleket, és bármikor leiratkozhatsz.
-						<a href={resolve('/adatkezeles')}>Adatkezelési tájékoztató</a>
-					</p>
+				<p class="mi-keszul">{@html o.sor(adat.keszuloCim)}</p>
+				{#if adat.keszulo.length}
+					<ul class="keszulo">
+						{#each adat.keszulo as elem, i (i)}
+							<li>{@html o.sor(elem)}</li>
+						{/each}
+					</ul>
+				{/if}
+				{#if emailErvenyes(email)}
+					<p>{@html o.sor(adat.levelSzoveg)}</p>
+					<a class="gomb gomb-masodlagos" href={levelLink}>{o.sima(adat.gomb)}</a>
+					<p class="apro halk">{@html o.sor(adat.levelApro)}</p>
 				{:else}
-					<p class="apro halk">A feliratkozás hamarosan indul.</p>
+					<p class="apro halk">{@html o.sor(adat.nincsEmail)}</p>
 				{/if}
 			</div>
 		{/if}

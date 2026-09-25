@@ -1,35 +1,25 @@
 <script lang="ts">
-	import { booking } from '$lib/config';
+	import type { TudnivalokAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const tudnivalok = [
-		{
-			cim: 'Helyszín',
-			szoveg: `Online, ${booking.platform}. Kamera és mikrofon kell, telefonról is működik.`
-		},
-		{ cim: 'Fizetés', szoveg: `${booking.payment}.` },
-		{
-			cim: 'Lemondás, átfoglalás',
-			szoveg: `Az óra előtt legkésőbb ${booking.freeCancellationHours} órával díjmentesen. Későbbi lemondás vagy meg nem jelenés esetén az alkalom elvész.`
-		},
-		{
-			cim: 'Késés',
-			szoveg:
-				'Az óra a lefoglalt időpontban véget ér, ezért érdemes pár perccel korábban belépni.'
-		},
-		{ cim: 'Bérlet érvényessége', szoveg: `${booking.passValidity}.` }
-	];
+	let { adat, horgony = 'tudnivalok' }: { adat: TudnivalokAdat; horgony?: string } = $props();
+	const o = oldal();
 </script>
 
-<section class="szakasz tudnivalok" aria-labelledby="tudnivalok-cim">
+<section
+	id={horgony || undefined}
+	class="szakasz tudnivalok"
+	aria-labelledby="{horgony || 'tudnivalok'}-cim"
+>
 	<div class="wrap">
-		<SzakaszCim id="tudnivalok-cim" elotag="Bueno saberlo">Foglalási tudnivalók</SzakaszCim>
+		<SzakaszCim id="{horgony || 'tudnivalok'}-cim" elotag={adat.elotag} cim={adat.cim} />
 
 		<dl>
-			{#each tudnivalok as t (t.cim)}
+			{#each adat.elemek as elem, i (i)}
 				<div class="elem">
-					<dt>{t.cim}</dt>
-					<dd>{t.szoveg}</dd>
+					<dt>{@html o.sor(elem.cim)}</dt>
+					<dd>{@html o.sor(elem.szoveg)}</dd>
 				</div>
 			{/each}
 		</dl>

@@ -1,0 +1,2 @@
+# Helyi fejlesztéshez: másold .dev.vars néven, és írd át a jelszót.
+ADMIN_JELSZO=helyi-jelszo

@@ -1,57 +1,35 @@
 <script lang="ts">
-	import { booking } from '$lib/config';
+	import type { GyikAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { link, kulsoLink } from '$lib/tartalom/szoveg';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const kerdesek = [
-		{
-			k: 'Milyen szinten kell lennem?',
-			v: 'Legalább A2-es szinten, meglevő alap szókincscsel és nyelvtannal. Ha bizonytalan vagy, foglalj egy alkalmat, és az első percekben kiderül.'
-		},
-		{
-			k: 'Tanítasz nyelvtant is?',
-			v: 'Nem. Az órák tisztán beszédgyakorlások. Ha egy hibád visszatér, megmutatom a helyes formát, de nyelvtani magyarázat nincs.'
-		},
-		{
-			k: 'Segítesz az írásbeli vizsgarészre?',
-			v: 'Az órák most a szóbeli részre készítenek fel. Az írásbeli vizsgarészhez készülő tananyagom fejlesztés alatt áll — ha feliratkozol a hírlevelemre, elsőként értesülsz róla.',
-			link: { href: '#hirlevel', szoveg: 'Feliratkozom' }
-		},
-		{
-			k: 'Milyen gyakran érdemes foglalni?',
-			v: 'Heti 2–3 alkalom a leghatékonyabb, de nincs kötelező ritmus. Foglalhatsz egy hetet sűrűbben a vizsga előtt, és kihagyhatsz egy zsúfolt hetet.'
-		},
-		{
-			k: 'Mindig ugyanabban az időpontban kell jönnöm?',
-			v: 'Nem. Minden alkalmat külön foglalsz, akkor, amikor neked jó.'
-		},
-		{
-			k: 'Csak vizsgára vagy csak munkára készülhetek?',
-			v: 'Bármelyikre, vagy mindkettőre. Foglaláskor írd meg a célodat, és ahhoz igazítom az órát.'
-		},
-		{
-			k: 'Mi van, ha nem tudok elmenni?',
-			v: `Az óra előtt ${booking.freeCancellationHours} órával díjmentesen lemondhatod vagy átteheted a visszaigazoló e-mailben lévő linkkel.`
-		}
-	];
+	let { adat, horgony = 'gyik' }: { adat: GyikAdat; horgony?: string } = $props();
+	const o = oldal();
 </script>
 
-<section id="gyik" class="szakasz gyik" aria-labelledby="gyik-cim">
+<section id={horgony || undefined} class="szakasz gyik" aria-labelledby="{horgony || 'gyik'}-cim">
 	<div class="wrap racs">
 		<div class="bal">
-			<SzakaszCim id="gyik-cim" elotag="Preguntas frecuentes">Gyakori kérdések</SzakaszCim>
+			<SzakaszCim id="{horgony || 'gyik'}-cim" elotag={adat.elotag} cim={adat.cim} />
 		</div>
 
 		<div class="lista">
-			{#each kerdesek as kerdes, i (kerdes.k)}
+			{#each adat.kerdesek as kerdes, i (i)}
 				<details open={i === 0}>
 					<summary>
-						<span>{kerdes.k}</span>
+						<span>{@html o.sor(kerdes.kerdes)}</span>
 						<span class="jel" aria-hidden="true"></span>
 					</summary>
 					<div class="valasz">
-						<p>{kerdes.v}</p>
-						{#if kerdes.link}
-							<a href={kerdes.link.href}>{kerdes.link.szoveg} →</a>
+						<p>{@html o.sor(kerdes.valasz)}</p>
+						{#if kerdes.linkSzoveg.trim() && kerdes.linkHref.trim()}
+							<a
+								href={link(kerdes.linkHref)}
+								target={kulsoLink(kerdes.linkHref) ? '_blank' : undefined}
+								rel={kulsoLink(kerdes.linkHref) ? 'noopener' : undefined}
+								>{o.sima(kerdes.linkSzoveg)} →</a
+							>
 						{/if}
 					</div>
 				</details>
@@ -144,7 +122,7 @@
 		max-width: 68ch;
 	}
 
-	.valasz a {
+	.valasz :global(a) {
 		font-weight: 600;
 	}
 

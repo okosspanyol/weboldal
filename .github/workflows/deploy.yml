@@ -1,6 +1,9 @@
-# A weboldal felépítése és kitétele a GitHub Pagesre minden feltöltés (push) után.
-# Egyszeri beállítás a GitHubon: Settings → Pages → Build and deployment → Source: „GitHub Actions”.
-name: Weboldal kitétele (GitHub Pages)
+# A weboldal felépítése és kitétele a Cloudflare Workersre minden feltöltés (push) után.
+# Egyszeri beállítás a GitHubon (Settings → Secrets and variables → Actions → New repository secret):
+#   CLOUDFLARE_API_TOKEN   – Cloudflare API token („Edit Cloudflare Workers” sablon + D1: Edit jog)
+#   CLOUDFLARE_ACCOUNT_ID  – a Cloudflare-fiók azonosítója (a Cloudflare kezelőfelületén, a Workers oldalon)
+#   ADMIN_JELSZO           – az /admin felület jelszava (nem kötelező, a Cloudflare-en is megadható)
+name: Weboldal kitétele (Cloudflare Workers)
 
 on:
   push:
@@ -12,18 +15,22 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Egyszerre csak egy kitétel fusson; az újabb feltöltés megvárja az előzőt.
 concurrency:
-  group: pages
+  group: cloudflare
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Felépítés
+  deploy:
+    name: Felépítés és kitétel
     runs-on: ubuntu-latest
+    environment:
+      name: cloudflare
+      url: ${{ steps.kitetel.outputs.url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v7
 
@@ -40,19 +47,32 @@ jobs:
       - name: Felépítés
         run: npm run build
 
-      - uses: actions/configure-pages@v6
+      - name: Cloudflare hozzáférés ellenőrzése
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Hiányzik a CLOUDFLARE_API_TOKEN vagy a CLOUDFLARE_ACCOUNT_ID GitHub Secret. Lásd README: Élesítés."
+            exit 1
+          fi
 
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: build
+      - name: D1 adatbázis (létrehozás, ha még nincs)
+        run: node scripts/d1-elokeszites.mjs
 
-  deploy:
-    name: Kitétel
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Adatbázis séma
+        run: npx wrangler d1 migrations apply okosspanyol --remote
+
+      - name: Kitétel
+        id: kitetel
+        run: |
+          npx wrangler deploy | tee kitetel.log
+          url=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' kitetel.log | head -n1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Admin jelszó
+        env:
+          ADMIN_JELSZO: ${{ secrets.ADMIN_JELSZO }}
+        run: |
+          if [ -n "$ADMIN_JELSZO" ]; then
+            printf '%s' "$ADMIN_JELSZO" | npx wrangler secret put ADMIN_JELSZO
+          else
+            echo "::notice::Nincs ADMIN_JELSZO GitHub Secret — a jelszót a Cloudflare-en add meg (lásd README)."
+          fi

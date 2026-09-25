@@ -1,60 +1,53 @@
 <script lang="ts">
-	import { asset } from '$app/paths';
-	import { teacher } from '$lib/config';
+	import type { RolamAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import Boltiv from '$lib/components/Boltiv.svelte';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const tenyek = [`Tanítási tapasztalat: ${teacher.yearsTeaching} év`, ...teacher.facts];
+	let { adat, horgony = 'rolam' }: { adat: RolamAdat; horgony?: string } = $props();
+	const o = oldal();
+	const tenyek = $derived(adat.tenyek.filter((t) => t.trim()));
 </script>
 
-<section id="rolam" class="szakasz rolam" aria-labelledby="rolam-cim">
+<section id={horgony || undefined} class="szakasz rolam" aria-labelledby="{horgony || 'rolam'}-cim">
 	<div class="wrap racs">
 		<div class="kep">
-			<Boltiv src={teacher.photos.about && asset(teacher.photos.about)} alt="{teacher.firstName} portréja" felirat="¡Hola!" vilagos />
+			<Boltiv
+				src={adat.foto.trim()}
+				alt={o.sima(adat.fotoAlt)}
+				felirat={o.sima(adat.boltivFelirat)}
+				vilagos
+			/>
 		</div>
 
 		<div class="tartalom">
-			<SzakaszCim id="rolam-cim" elotag="Sobre mí">
-				<span class="es">¡Hola!</span>
-				{teacher.firstName} vagyok.
-			</SzakaszCim>
+			<SzakaszCim id="{horgony || 'rolam'}-cim" elotag={adat.elotag} cim={adat.cim} />
 
-			<div class="bekezdesek olvashato">
-				<p>
-					Spanyoltanár vagyok, {teacher.yearsTeaching} éve tanítok, főleg 18–25 éves egyetemistákat és
-					pályakezdőket. Az évek során egy dolgot láttam újra és újra: a diákjaim ismerik a szavakat és
-					a nyelvtant, de amikor beszélni kell — vizsgán vagy egy állásinterjún —, megakadnak.
-				</p>
-				<p>
-					Ezért szakosodtam az <strong>üzleti spanyolra</strong>. Kidolgoztam egy 14 témás, a BGE B2
-					üzleti szaknyelvi vizsgára épülő tananyagot, az önéletrajztól a cégek felépítésén át a
-					pénzügyekig.
-				</p>
-			</div>
+			{#if adat.bevezeto.trim()}
+				<div class="bekezdesek olvashato">{@html o.blokk(adat.bevezeto)}</div>
+			{/if}
 
-			<blockquote>
-				<p>
-					Kevesen tanítanak élőben, kifejezetten beszédközpontúan üzleti spanyolt — én erre
-					szakosodtam.
-				</p>
-			</blockquote>
+			{#if adat.idezet.trim()}
+				<blockquote>
+					<p>{@html o.sor(adat.idezet)}</p>
+				</blockquote>
+			{/if}
 
-			<p class="olvashato">
-				Az óráimon nem előadást tartok. Te beszélsz, én kérdezek, javítok, és olyan helyzeteket
-				gyakorolunk, amelyekkel tényleg találkozni fogsz: a vizsgabizottság előtt vagy egy spanyol cég
-				HR-esével szemben.
-			</p>
+			{#if adat.folytatas.trim()}
+				<div class="bekezdesek olvashato">{@html o.blokk(adat.folytatas)}</div>
+			{/if}
 
-			<ul class="tenyek" aria-label="Rólam röviden">
-				{#each tenyek as teny (teny)}
-					<li>{teny}</li>
-				{/each}
-			</ul>
+			{#if tenyek.length}
+				<ul class="tenyek" aria-label={o.sima(adat.tenyekCim)}>
+					{#each tenyek as teny, i (i)}
+						<li>{@html o.sor(teny)}</li>
+					{/each}
+				</ul>
+			{/if}
 
-			<p class="zaro olvashato">
-				Ha a spanyolod már megvan, de a beszéd még nem megy gördülékenyen, azon közösen dolgozunk.
-				<span class="es">¡Nos vemos en clase!</span>
-			</p>
+			{#if adat.zaro.trim()}
+				<p class="zaro olvashato">{@html o.sor(adat.zaro)}</p>
+			{/if}
 		</div>
 	</div>
 </section>
@@ -128,7 +121,7 @@
 		background: var(--terrakotta);
 	}
 
-	.zaro .es {
+	.zaro :global(.es) {
 		color: var(--terrakotta-sotet);
 		font-weight: 600;
 		white-space: nowrap;

@@ -1,41 +1,34 @@
 <script lang="ts">
+	import type { KinekSzolAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const igen = [
-		'legalább A2-es szinten vagy,',
-		'megvan az alap szókincsed és nyelvtanod,',
-		'és beszédben szeretnél fejlődni.'
-	];
-
-	const nem = [
-		'most kezded a spanyolt,',
-		'nyelvtanmagyarázatot keresel,',
-		'vagy az írásbeli vizsgarészre készülnél.'
-	];
+	let { adat, horgony = 'kinek' }: { adat: KinekSzolAdat; horgony?: string } = $props();
+	const o = oldal();
 </script>
 
-<section class="szakasz kinek" aria-labelledby="kinek-cim">
+<section id={horgony || undefined} class="szakasz kinek" aria-labelledby="{horgony || 'kinek'}-cim">
 	<div class="wrap">
-		<SzakaszCim id="kinek-cim" elotag="¿Es para ti?">Kinek szól — és kinek nem?</SzakaszCim>
+		<SzakaszCim id="{horgony || 'kinek'}-cim" elotag={adat.elotag} cim={adat.cim} />
 
 		<div class="oszlopok">
 			<div class="oszlop igen">
-				<h3>Neked való, ha…</h3>
+				<h3>{@html o.sor(adat.igenCim)}</h3>
 				<ul>
-					{#each igen as sor (sor)}
-						<li><span class="jel" aria-hidden="true">✓</span>{sor}</li>
+					{#each adat.igen as sor, i (i)}
+						<li><span class="jel" aria-hidden="true">✓</span><span>{@html o.sor(sor)}</span></li>
 					{/each}
 				</ul>
 			</div>
 
 			<div class="oszlop nem">
-				<h3>Nem neked való, ha…</h3>
+				<h3>{@html o.sor(adat.nemCim)}</h3>
 				<ul>
-					{#each nem as sor (sor)}
-						<li><span class="jel" aria-hidden="true">✕</span>{sor}</li>
+					{#each adat.nem as sor, i (i)}
+						<li><span class="jel" aria-hidden="true">✕</span><span>{@html o.sor(sor)}</span></li>
 					{/each}
 				</ul>
-				<p class="apro halk">Az órák tisztán beszédgyakorlások.</p>
+				{#if adat.megjegyzes.trim()}<p class="apro halk">{@html o.sor(adat.megjegyzes)}</p>{/if}
 			</div>
 		</div>
 	</div>

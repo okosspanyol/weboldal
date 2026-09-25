@@ -1,34 +1,30 @@
-<!-- Közös keret a jogi és egyéb szöveges aloldalakhoz. -->
+<!-- Szöveges aloldal (adatkezelés, ÁSZF, impresszum, köszönő oldal és az adminban hozzáadott oldalak). -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { resolve } from '$app/paths';
+	import type { Aloldal } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import Fejadatok from './Fejadatok.svelte';
+	import FoglalasGomb from './FoglalasGomb.svelte';
 
-	let {
-		cim,
-		elotag = '',
-		leiras,
-		indexelheto = true,
-		children
-	}: {
-		cim: string;
-		elotag?: string;
-		leiras: string;
-		indexelheto?: boolean;
-		children: Snippet;
-	} = $props();
+	let { aloldal }: { aloldal: Aloldal } = $props();
+	const o = oldal();
 </script>
 
-<Fejadatok cim="{cim} | OKOSspanyol" {leiras} megosztas={cim} {indexelheto} />
+<Fejadatok
+	cim="{o.sima(aloldal.cim)} | OKOSspanyol"
+	leiras={aloldal.leiras}
+	megosztas={o.sima(aloldal.cim)}
+	indexelheto={aloldal.indexelheto}
+/>
 
 <article class="wrap jogi">
-	<a class="vissza apro" href={resolve('/')}>← Vissza a főoldalra</a>
+	<a class="vissza apro" href="/">← Vissza a főoldalra</a>
 	<header>
-		{#if elotag}<p class="es elotag">{elotag}</p>{/if}
-		<h1>{cim}</h1>
+		{#if aloldal.elotag.trim()}<p class="es elotag">{@html o.sor(aloldal.elotag)}</p>{/if}
+		<h1>{@html o.sor(aloldal.cim)}</h1>
 	</header>
 	<div class="torzs">
-		{@render children()}
+		{@html o.blokk(aloldal.torzs)}
+		{#if aloldal.foglalasGomb}<div><FoglalasGomb /></div>{/if}
 	</div>
 </article>
 
@@ -80,6 +76,10 @@
 	.torzs :global(h2) {
 		font-size: 1.5rem;
 		margin-top: 20px;
+	}
+
+	.torzs :global(h3) {
+		margin-top: 12px;
 	}
 
 	.torzs :global(ul) {

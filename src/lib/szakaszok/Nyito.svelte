@@ -1,60 +1,58 @@
 <script lang="ts">
-	import { asset } from '$app/paths';
-	import { teacher } from '$lib/config';
+	import type { NyitoAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { link, kulsoLink } from '$lib/tartalom/szoveg';
 	import Boltiv from '$lib/components/Boltiv.svelte';
 	import FoglalasGomb from '$lib/components/FoglalasGomb.svelte';
 
-	const jellemzok = [
-		{ cim: '30 perc', szoveg: 'Befér munka előtt, ebédszünetben vagy este.' },
-		{
-			cim: 'Egyeztetés nélkül',
-			szoveg: 'A szabad időpontok közül te választasz, nincs kötött órarend.'
-		},
-		{ cim: 'Csak beszéd', szoveg: 'Nincs nyelvtanmagyarázat, az egész óra gyakorlás.' }
-	];
+	let { adat, horgony = '' }: { adat: NyitoAdat; horgony?: string } = $props();
+	const o = oldal();
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
 </script>
 
-<section class="nyito" aria-labelledby="focim">
+<section id={horgony || undefined} class="nyito" aria-labelledby="focim">
 	<div class="wrap racs">
 		<div class="szoveg">
-			<h1 id="focim">
-				Beszélj üzleti <span class="es kiemelt">spanyolul</span> — 30 percben, akkor, amikor neked
-				jó.
-			</h1>
-			<p class="alcim olvashato">
-				Élő, beszédközpontú online órák a BGE üzleti spanyol szóbeli vizsgára és a spanyolországi
-				munkavállalásra. Nem nálam kell igazodnod — én igazodom a napodhoz.
-			</p>
+			<h1 id="focim">{@html o.sor(adat.cim)}</h1>
+			{#if adat.alcim.trim()}<p class="alcim olvashato">{@html o.sor(adat.alcim)}</p>{/if}
 			<div class="gombok">
 				<FoglalasGomb />
-				<a class="mukodes" href="#hogyan">Megnézem, hogyan működik</a>
+				{#if adat.masodikGomb.szoveg.trim() && adat.masodikGomb.href.trim()}
+					<a
+						class="mukodes"
+						href={link(adat.masodikGomb.href)}
+						target={kulsoLink(adat.masodikGomb.href) ? '_blank' : undefined}
+						rel={kulsoLink(adat.masodikGomb.href) ? 'noopener' : undefined}
+						>{o.sima(adat.masodikGomb.szoveg)}</a
+					>
+				{/if}
 			</div>
-			<p class="szuro apro halk">
-				Ha már megvannak az alapjaid (legalább A2), és végre beszélni szeretnél, jó helyen jársz.
-			</p>
+			{#if adat.szuro.trim()}<p class="szuro apro halk">{@html o.sor(adat.szuro)}</p>{/if}
 		</div>
 
 		<div class="kep">
 			<Boltiv
-				src={teacher.photos.hero && asset(teacher.photos.hero)}
-				alt="{teacher.firstName}, az OKOSspanyol tanára"
-				felirat="¿Hablamos?"
+				src={adat.foto.trim()}
+				alt={o.sima(adat.fotoAlt)}
+				felirat={o.sima(adat.boltivFelirat)}
 				kiemelt
 			/>
 		</div>
 	</div>
 
-	<div class="wrap">
-		<ul class="jellemzok">
-			{#each jellemzok as j, i (j.cim)}
-				<li>
-					<span class="sorszam">0{i + 1} / 0{jellemzok.length}</span>
-					<h2 class="jcim">{j.cim}</h2>
-					<p>{j.szoveg}</p>
-				</li>
-			{/each}
-		</ul>
-	</div>
+	{#if adat.jellemzok.length}
+		<div class="wrap">
+			<ul class="jellemzok">
+				{#each adat.jellemzok as j, i (i)}
+					<li>
+						<span class="sorszam">{ketjegyu(i + 1)} / {ketjegyu(adat.jellemzok.length)}</span>
+						<h2 class="jcim">{@html o.sor(j.cim)}</h2>
+						<p>{@html o.sor(j.szoveg)}</p>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
 </section>
 
 <style>
@@ -75,8 +73,10 @@
 		justify-items: start;
 	}
 
-	.kiemelt {
+	h1 :global(.es),
+	h1 :global(strong) {
 		color: var(--terrakotta);
+		font-weight: inherit;
 	}
 
 	.alcim {

@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { link, kulsoLink } from '$lib/tartalom/szoveg';
 	import Logo from './Logo.svelte';
 	import FoglalasGomb from './FoglalasGomb.svelte';
 
-	const fooldal = resolve('/');
-	const menu = [
-		{ szoveg: 'Rólam', hash: '#rolam' },
-		{ szoveg: 'Az órák', hash: '#orak' },
-		{ szoveg: 'Hogyan foglalj', hash: '#foglalas' },
-		{ szoveg: 'GYIK', hash: '#gyik' }
-	];
+	const o = oldal();
+	const menu = $derived(
+		o.t.fejlec.menu
+			.filter((m) => m.szoveg.trim() && m.href.trim())
+			.map((m) => ({ szoveg: o.sima(m.szoveg), href: link(m.href), kulso: kulsoLink(m.href) }))
+	);
 
+	// Az élő oldalon nincs Svelte a böngészőben: a menüt és a görgetést a /oldal.js kezeli.
+	// Az admin előnézetében ugyanezt ezek az állapotok végzik.
 	let nyitva = $state(false);
 	let gorgetett = $state(false);
 
@@ -24,16 +26,22 @@
 	onkeydown={(e) => e.key === 'Escape' && bezar()}
 />
 
-<header class:gorgetett>
+<header class:gorgetett data-fejlec>
 	<div class="wrap sor">
-		<a class="logo-link" href={fooldal} aria-label="OKOSspanyol – főoldal" onclick={bezar}>
+		<a class="logo-link" href="/" aria-label="OKOSspanyol – főoldal" onclick={bezar}>
 			<Logo />
 		</a>
 
 		<nav aria-label="Főmenü" class="asztali">
 			<ul>
-				{#each menu as pont (pont.hash)}
-					<li><a href="{fooldal}{pont.hash}">{pont.szoveg}</a></li>
+				{#each menu as pont, i (i)}
+					<li>
+						<a
+							href={pont.href}
+							target={pont.kulso ? '_blank' : undefined}
+							rel={pont.kulso ? 'noopener' : undefined}>{pont.szoveg}</a
+						>
+					</li>
 				{/each}
 			</ul>
 			<FoglalasGomb />
@@ -43,17 +51,27 @@
 			class="menugomb"
 			aria-expanded={nyitva}
 			aria-controls="mobilmenu"
+			data-menugomb
 			onclick={() => (nyitva = !nyitva)}
 		>
-			<span class="csak-felolvasonak">{nyitva ? 'Menü bezárása' : 'Menü megnyitása'}</span>
+			<span class="csak-felolvasonak" data-nyit="Menü megnyitása" data-zar="Menü bezárása"
+				>{nyitva ? 'Menü bezárása' : 'Menü megnyitása'}</span
+			>
 			<span class="vonalak" class:nyitva aria-hidden="true"><span></span></span>
 		</button>
 	</div>
 
 	<nav id="mobilmenu" class="mobil" class:nyitva aria-label="Mobil menü" hidden={!nyitva}>
 		<ul class="wrap">
-			{#each menu as pont (pont.hash)}
-				<li><a href="{fooldal}{pont.hash}" onclick={bezar}>{pont.szoveg}</a></li>
+			{#each menu as pont, i (i)}
+				<li>
+					<a
+						href={pont.href}
+						onclick={bezar}
+						target={pont.kulso ? '_blank' : undefined}
+						rel={pont.kulso ? 'noopener' : undefined}>{pont.szoveg}</a
+					>
+				</li>
 			{/each}
 		</ul>
 	</nav>

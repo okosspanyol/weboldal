@@ -1,15 +1,21 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { readdirSync } from 'node:fs';
 import { defineConfig } from 'vite';
-import { site } from './src/lib/config';
 
-// Alútvonal a weboldal címéből: 'https://okosspanyol.github.io/weboldal' → '/weboldal', saját domainnél ''.
-// Fejlesztés közben (npm run dev) mindig a gyökérből fut.
-const base = (
-	process.argv.includes('dev') ? '' : new URL(site.url).pathname.replace(/\/$/, '')
-) as '' | `/${string}`;
+/** A `static/` mappa fájljainak listája — ebből tudja az oldal, hogy feltöltötted-e pl. a logo-hosszu.png-t. */
+function statikusFajlok(mappa = 'static', elotag = ''): string[] {
+	return readdirSync(mappa, { withFileTypes: true }).flatMap((f) =>
+		f.isDirectory()
+			? statikusFajlok(`${mappa}/${f.name}`, `${elotag}/${f.name}`)
+			: [`${elotag}/${f.name}`]
+	);
+}
 
 export default defineConfig({
+	define: {
+		__STATIKUS_FAJLOK__: JSON.stringify(statikusFajlok())
+	},
 	plugins: [
 		sveltekit({
 			compilerOptions: {
@@ -18,10 +24,8 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			// Statikus oldal: a `npm run build` után a `build/` mappa bármilyen tárhelyre feltölthető.
-			adapter: adapter({ fallback: '404.html' }),
-
-			paths: { base }
+			// Cloudflare Worker (statikus fájlokkal) — beállítás: wrangler.jsonc
+			adapter: adapter()
 		})
 	]
 });

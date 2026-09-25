@@ -1,33 +1,42 @@
 <script lang="ts">
-	import { booking, pricing } from '$lib/config';
+	import type { ArakAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import FoglalasGomb from '$lib/components/FoglalasGomb.svelte';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
+
+	let { adat, horgony = 'arak' }: { adat: ArakAdat; horgony?: string } = $props();
+	const o = oldal();
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
 </script>
 
-<section id="arak" class="szakasz arak" aria-labelledby="arak-cim">
+<section id={horgony || undefined} class="szakasz arak" aria-labelledby="{horgony || 'arak'}-cim">
 	<div class="wrap">
-		<SzakaszCim id="arak-cim" elotag="Precios">Árak</SzakaszCim>
+		<SzakaszCim id="{horgony || 'arak'}-cim" elotag={adat.elotag} cim={adat.cim} />
 
-		{#if pricing.launchOffer}
-			<p class="ajanlat"><span class="cimke">Indulási ajánlat</span> {pricing.launchOffer}</p>
+		{#if adat.ajanlat.trim()}
+			<p class="ajanlat">
+				{#if adat.ajanlatCimke}<span class="cimke">{o.sima(adat.ajanlatCimke)}</span>{/if}
+				<span>{@html o.sor(adat.ajanlat)}</span>
+			</p>
 		{/if}
 
 		<ul class="csomagok">
-			{#each pricing.packages as csomag, i (csomag.name)}
-				<li class="csomag">
-					<span class="sorszam">0{i + 1} / 0{pricing.packages.length}</span>
-					<h3>{csomag.name}</h3>
-					<p class="halk">{csomag.detail}</p>
-					<p class="ar">{csomag.price}</p>
+			{#each adat.csomagok as csomag, i (i)}
+				<li class="csomag" class:kiemelt={!!csomag.cimke.trim()}>
+					<div class="csomag-fej">
+						<span class="sorszam">{ketjegyu(i + 1)} / {ketjegyu(adat.csomagok.length)}</span>
+						{#if csomag.cimke.trim()}<span class="cimke">{o.sima(csomag.cimke)}</span>{/if}
+					</div>
+					<h3>{@html o.sor(csomag.nev)}</h3>
+					<p class="halk">{@html o.sor(csomag.reszlet)}</p>
+					<p class="ar">{@html o.sor(csomag.ar)}</p>
 				</li>
 			{/each}
 		</ul>
 
 		<div class="lab">
 			<FoglalasGomb />
-			<p class="apro halk">
-				Heti 2–3 alkalom a leghatékonyabb, de nincs kötelező ritmus. Bérlet érvényessége: {booking.passValidity}.
-			</p>
+			{#if adat.megjegyzes.trim()}<p class="apro halk">{@html o.sor(adat.megjegyzes)}</p>{/if}
 		</div>
 	</div>
 </section>
@@ -51,7 +60,7 @@
 		margin: clamp(32px, 4vw, 48px) 0 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
 		gap: clamp(16px, 2.5vw, 28px);
 	}
 
@@ -63,6 +72,19 @@
 		border: 1px solid var(--vonal);
 		border-radius: var(--sarok);
 		background: rgb(255 255 255 / 0.5);
+	}
+
+	.csomag.kiemelt {
+		border-color: var(--terrakotta);
+		box-shadow: inset 0 4px 0 var(--terrakotta);
+	}
+
+	.csomag-fej {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
 	}
 
 	.csomag h3 {

@@ -1,54 +1,86 @@
 <script lang="ts">
-	import { asset, resolve } from '$app/paths';
-	import { contact, hasEmail, socialLinks, teacher } from '$lib/config';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { emailErvenyes, kepElerheto, link, kulsoLink } from '$lib/tartalom/szoveg';
 	import Logo from './Logo.svelte';
 
-	const kozossegi = socialLinks();
-	const ev = new Date().getFullYear();
+	const o = oldal();
+	const t = $derived(o.t);
+	const kozossegi = $derived(t.altalanos.kozossegi.filter((l) => l.szoveg.trim() && l.href.trim()));
+	const linkek = $derived(t.lablec.linkek.filter((l) => l.szoveg.trim() && l.href.trim()));
+	const hosszuLogo = $derived(kepElerheto(t.fejlec.logoKep));
+	const barion = $derived(t.lablec.barion);
+	const barionKep = $derived(kepElerheto(barion.kep) ? barion.kep : '');
 </script>
 
 <footer class="sotet">
 	<div class="wrap racs">
 		<div class="marka">
-			<a class="logo-alap" href={resolve('/')} aria-label="OKOSspanyol – főoldal">
-				<img src={asset('/logo-kor.png')} alt="" width="44" height="44" />
+			<a class="logo-alap" href="/" aria-label="OKOSspanyol – főoldal">
+				{#if !hosszuLogo}<img src="/logo-kor.png" alt="" width="44" height="44" />{/if}
 				<Logo />
 			</a>
-			<p>
-				Üzleti spanyol beszédgyakorlás online — szóbeli vizsgára és spanyolországi munkához.
-			</p>
+			<p>{@html o.sor(t.lablec.leiras)}</p>
 		</div>
 
 		<div class="oszlop">
-			<h2 class="oszlopcim">Kapcsolat</h2>
+			<h2 class="oszlopcim">{o.sima(t.lablec.kapcsolatCim)}</h2>
 			<ul>
 				<li>
-					{#if hasEmail()}
-						<a href="mailto:{contact.email}">{contact.email}</a>
+					{#if emailErvenyes(t.altalanos.email)}
+						<a href="mailto:{t.altalanos.email}">{t.altalanos.email}</a>
 					{:else}
-						{contact.email}
+						{t.altalanos.email}
 					{/if}
 				</li>
-				{#each kozossegi as link (link.label)}
-					<li><a href={link.href} rel="noopener" target="_blank">{link.label}</a></li>
+				{#each kozossegi as l, i (i)}
+					<li><a href={link(l.href)} rel="noopener" target="_blank">{o.sima(l.szoveg)}</a></li>
 				{/each}
 			</ul>
 		</div>
 
 		<div class="oszlop">
-			<h2 class="oszlopcim">Tudnivalók</h2>
+			<h2 class="oszlopcim">{o.sima(t.lablec.tudnivalokCim)}</h2>
 			<ul>
-				<li><a href={resolve('/adatkezeles')}>Adatkezelési tájékoztató</a></li>
-				<li><a href={resolve('/aszf')}>ÁSZF</a></li>
-				<li><a href={resolve('/impresszum')}>Impresszum</a></li>
+				{#each linkek as l, i (i)}
+					<li>
+						<a
+							href={link(l.href)}
+							target={kulsoLink(l.href) ? '_blank' : undefined}
+							rel={kulsoLink(l.href) ? 'noopener' : undefined}>{o.sima(l.szoveg)}</a
+						>
+					</li>
+				{/each}
 			</ul>
 		</div>
 	</div>
 
+	{#if barion.lathato}
+		<div class="wrap">
+			<!-- A Barion előírása: a hivatalos Barion logó a lábléceben, a barion.com-ra mutatva. -->
+			<a
+				class="barion"
+				href={link(barion.link) || 'https://www.barion.com/hu/'}
+				target="_blank"
+				rel="noopener"
+				aria-label="{o.sima(barion.szoveg)} (új lapon nyílik meg)"
+			>
+				{#if barionKep}
+					<img src={barionKep} alt="Barion – {o.sima(barion.kartyak)}" loading="lazy" />
+				{:else}
+					<span class="barion-szoveg">
+						<span class="barion-nev">Barion</span>
+						<span class="barion-kartyak">{o.sima(barion.kartyak)}</span>
+					</span>
+				{/if}
+				<span class="barion-leiras apro">{o.sima(barion.szoveg)}</span>
+			</a>
+		</div>
+	{/if}
+
 	<div class="wrap">
 		<div class="also">
-			<p class="apro">© {ev} {teacher.fullName} · OKOSspanyol</p>
-			<p class="apro es">¡Nos vemos en clase!</p>
+			<p class="apro">{@html o.sor(t.lablec.copyright)}</p>
+			<p class="apro es">{@html o.sor(t.lablec.zaroEs)}</p>
 		</div>
 	</div>
 </footer>
@@ -109,8 +141,58 @@
 		text-decoration: underline;
 	}
 
+	.barion {
+		margin-top: 40px;
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px 20px;
+		text-decoration: none !important;
+		color: inherit;
+	}
+
+	/* A Barion logósávja fehér alapon a legolvashatóbb */
+	.barion img,
+	.barion-szoveg {
+		display: block;
+		height: 44px;
+		width: auto;
+		max-width: min(100%, 420px);
+		padding: 6px 12px;
+		background: #fff;
+		border-radius: var(--sarok);
+		object-fit: contain;
+	}
+
+	.barion-szoveg {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 2px 12px;
+		height: auto;
+		min-height: 44px;
+		color: #1a1a1a;
+		font-size: 14px;
+		line-height: 1.3;
+	}
+
+	.barion-nev {
+		font-weight: 700;
+		font-size: 18px;
+		letter-spacing: -0.01em;
+		color: #0097db;
+	}
+
+	.barion-leiras {
+		opacity: 0.85;
+	}
+
+	.barion:hover .barion-leiras {
+		text-decoration: underline;
+	}
+
 	.also {
-		margin-top: 48px;
+		margin-top: 32px;
 		padding-top: 20px;
 		border-top: 1px solid rgb(251 241 228 / 0.25);
 		display: flex;
@@ -122,7 +204,7 @@
 	/* Mobilon a képernyő alján végig látszó foglalás sáv ne takarja el a lábléc alját */
 	@media (max-width: 899px) {
 		footer {
-			padding-bottom: calc(32px + 76px + env(safe-area-inset-bottom, 0px));
+			padding-bottom: calc(32px + var(--mobil-sav, 0px) + env(safe-area-inset-bottom, 0px));
 		}
 	}
 

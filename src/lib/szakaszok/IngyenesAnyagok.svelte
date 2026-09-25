@@ -1,26 +1,40 @@
 <script lang="ts">
-	import { asset } from '$app/paths';
-	import { freeMaterials, instagramDmUrl } from '$lib/config';
+	import type { IngyenesAnyagokAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { link, sima } from '$lib/tartalom/szoveg';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const dm = instagramDmUrl();
+	let { adat, horgony = 'anyagok' }: { adat: IngyenesAnyagokAdat; horgony?: string } = $props();
+	const o = oldal();
+	const dm = $derived(link(o.t.altalanos.uzenetLink));
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
+	/** A {kulcsszo} a szövegben kiemelve jelenik meg. */
+	const kulcsszoval = (szoveg: string, kulcsszo: string) =>
+		o.sor(szoveg, { kulcsszo: '\u0000' }).replace(
+			'\u0000',
+			`<strong class="es kulcsszo">${sima(kulcsszo, {}).replace(/[&<>"']/g, '')}</strong>`
+		);
 </script>
 
-<section id="anyagok" class="szakasz anyagok" aria-labelledby="anyagok-cim">
+<section
+	id={horgony || undefined}
+	class="szakasz anyagok"
+	aria-labelledby="{horgony || 'anyagok'}-cim"
+>
 	<div class="wrap">
-		<SzakaszCim id="anyagok-cim" elotag="Gratis para ti">Ingyenes anyagok</SzakaszCim>
-		<p class="olvashato bevezeto">
-			Két rövid, kinyomtatható PDF, hogy már ma elkezdhesd a gyakorlást.
-		</p>
+		<SzakaszCim id="{horgony || 'anyagok'}-cim" elotag={adat.elotag} cim={adat.cim} />
+		{#if adat.bevezeto.trim()}
+			<p class="olvashato bevezeto">{@html o.sor(adat.bevezeto)}</p>
+		{/if}
 
 		<ul class="anyaglista">
-			{#each freeMaterials as anyag, i (anyag.title)}
+			{#each adat.anyagok as anyag, i (i)}
 				<li class="anyag">
 					<!-- Kicsinyített PDF-címlap az arculat szerint: sötét terrakotta felső harmad, krém alsó rész -->
 					<div class="borito" aria-hidden="true">
 						<div class="borito-fent">
-							<span class="borito-szam">0{i + 1}</span>
-							<span class="borito-cim">{anyag.title}</span>
+							<span class="borito-szam">{ketjegyu(i + 1)}</span>
+							<span class="borito-cim">{o.sima(anyag.cim)}</span>
 						</div>
 						<div class="borito-lent">
 							<span class="vonal"></span>
@@ -31,23 +45,19 @@
 					</div>
 
 					<div class="anyag-szoveg">
-						<h3>{anyag.title}</h3>
-						<p class="halk">{anyag.subtitle}</p>
-						{#if anyag.file}
-							<a class="gomb gomb-masodlagos" href={asset(anyag.file)} download>Letöltöm (PDF)</a>
+						<h3>{@html o.sor(anyag.cim)}</h3>
+						<p class="halk">{@html o.sor(anyag.alcim)}</p>
+						{#if anyag.fajl.trim()}
+							<a class="gomb gomb-masodlagos" href={link(anyag.fajl)} download
+								>{o.sima(adat.letoltesGomb)}</a
+							>
 						{:else if dm}
-							<p>
-								Írd meg Instagram-üzenetben, hogy <strong class="es kulcsszo">{anyag.keyword}</strong>,
-								és elküldöm.
-							</p>
+							<p>{@html kulcsszoval(adat.uzenetSzoveg, anyag.kulcsszo)}</p>
 							<a class="gomb gomb-masodlagos" href={dm} target="_blank" rel="noopener">
-								Kérem üzenetben
+								{o.sima(adat.uzenetGomb)}
 							</a>
 						{:else}
-							<p>
-								Hamarosan letölthető. Instagramon kommentben írd meg, hogy
-								<strong class="es kulcsszo">{anyag.keyword}</strong>, és elküldöm.
-							</p>
+							<p>{@html kulcsszoval(adat.hamarosanSzoveg, anyag.kulcsszo)}</p>
 						{/if}
 					</div>
 				</li>
@@ -160,7 +170,7 @@
 		margin-top: 6px;
 	}
 
-	.kulcsszo {
+	.anyag-szoveg :global(.kulcsszo) {
 		color: var(--terrakotta-sotet);
 		font-weight: 600;
 		letter-spacing: 0.04em;

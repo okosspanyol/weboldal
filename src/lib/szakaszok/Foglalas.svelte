@@ -1,79 +1,65 @@
 <script lang="ts">
-	import { booking, contact, hasEmail } from '$lib/config';
+	import type { FoglalasAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import FoglalasGomb from '$lib/components/FoglalasGomb.svelte';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const lepesek = [
-		{ cim: 'Válassz időpontot', szoveg: 'A naptárban csak a szabad 30 perces sávok látszanak.' },
-		{
-			cim: 'Add meg az adataidat',
-			szoveg: 'Név, e-mail, és pár szóban: vizsgára vagy munkához készülsz?'
-		},
-		{
-			cim: 'Kapsz egy visszaigazolást',
-			szoveg: 'Benne az online óra linkjével. Az óra előtt emlékeztetőt is küld a rendszer.'
-		}
-	];
+	let { adat, horgony = 'foglalas' }: { adat: FoglalasAdat; horgony?: string } = $props();
+	const o = oldal();
+	const f = $derived(o.t.foglalas);
+	const beagyazott = $derived(/^https:\/\//i.test(f.beagyazottUrl.trim()) ? f.beagyazottUrl.trim() : '');
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
 </script>
 
-<section id="foglalas" class="szakasz sotet foglalas" aria-labelledby="foglalas-cim">
+<section
+	id={horgony || undefined}
+	class="szakasz sotet foglalas"
+	aria-labelledby="{horgony || 'foglalas'}-cim"
+>
 	<div class="wrap">
 		<div class="fej">
-			<SzakaszCim id="foglalas-cim" elotag="Reserva tu clase">
-				Foglalj időpontot három lépésben
-			</SzakaszCim>
-			<p class="olvashato bevezeto">
-				Nem kell e-maileket váltanunk. Nézd meg a szabad időpontjaimat, és válaszd ki, ami neked jó.
-			</p>
+			<SzakaszCim id="{horgony || 'foglalas'}-cim" elotag={adat.elotag} cim={adat.cim} />
+			{#if adat.bevezeto.trim()}
+				<p class="olvashato bevezeto">{@html o.sor(adat.bevezeto)}</p>
+			{/if}
 		</div>
 
-		<ol class="lepesek">
-			{#each lepesek as lepes, i (lepes.cim)}
-				<li>
-					<span class="szam" aria-hidden="true">0{i + 1}</span>
-					<h3>{lepes.cim}</h3>
-					<p>{lepes.szoveg}</p>
-				</li>
-			{/each}
-		</ol>
+		{#if adat.lepesek.length}
+			<ol class="lepesek">
+				{#each adat.lepesek as lepes, i (i)}
+					<li>
+						<span class="szam" aria-hidden="true">{ketjegyu(i + 1)}</span>
+						<h3>{@html o.sor(lepes.cim)}</h3>
+						<p>{@html o.sor(lepes.szoveg)}</p>
+					</li>
+				{/each}
+			</ol>
+		{/if}
 
 		<div class="naptar">
-			{#if booking.embedUrl}
+			{#if beagyazott}
 				<iframe
-					src={booking.embedUrl}
+					src={beagyazott}
 					title="Foglalási naptár"
 					loading="lazy"
 					referrerpolicy="strict-origin-when-cross-origin"
 				></iframe>
-			{:else if booking.url}
+			{:else if f.url.trim()}
 				<div class="naptar-helyett">
-					<p class="es nagy">¿Cuándo te va bien?</p>
-					<FoglalasGomb szoveg="Megnézem a szabad időpontokat" kozvetlen />
+					<p class="es nagy">{@html o.sor(adat.vanLinkFelirat)}</p>
+					<FoglalasGomb szoveg={adat.vanLinkGomb} kozvetlen />
 				</div>
 			{:else}
 				<div class="naptar-helyett">
-					<p class="es nagy">¡Muy pronto!</p>
-					<p>
-						Az online foglalónaptár hamarosan itt lesz.
-						{#if hasEmail()}
-							Addig írj nekem, és egyeztetünk: <a href="mailto:{contact.email}">{contact.email}</a>
-						{:else}
-							Addig írj nekem: {contact.email}
-						{/if}
-					</p>
+					<p class="es nagy">{@html o.sor(adat.nincsLinkFelirat)}</p>
+					<p>{@html o.sor(adat.nincsLinkSzoveg)}</p>
 				</div>
 			{/if}
 		</div>
 
-		<p class="nemtalalsz">
-			Nem találsz neked megfelelő időpontot? Írj nekem:
-			{#if hasEmail()}
-				<a href="mailto:{contact.email}">{contact.email}</a>
-			{:else}
-				{contact.email}
-			{/if}
-			— igyekszem megoldani.
-		</p>
+		{#if adat.nemTalalsz.trim()}
+			<p class="nemtalalsz">{@html o.sor(adat.nemTalalsz)}</p>
+		{/if}
 	</div>
 </section>
 
@@ -127,7 +113,7 @@
 		font-weight: 400;
 	}
 
-	.naptar a {
+	.naptar :global(a:not(.gomb)) {
 		color: var(--terrakotta-sotet);
 	}
 

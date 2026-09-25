@@ -3,24 +3,27 @@
 	krém alapon terrakotta, sötét alapon mustársárga.
 -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { oldal } from '$lib/tartalom/kontextus';
 
 	let {
 		id,
 		elotag = '',
-		children
+		cim
 	}: {
 		/** A címsor azonosítója (a szakasz aria-labelledby-jához). */
 		id?: string;
 		/** Kis felirat a cím fölött — spanyolul, Lora dőlttel. */
 		elotag?: string;
-		children: Snippet;
+		/** A cím szövege (jelölésekkel). */
+		cim: string;
 	} = $props();
+
+	const o = oldal();
 </script>
 
 <div class="szakaszcim">
-	{#if elotag}<p class="elotag es">{elotag}</p>{/if}
-	<h2 {id}>{@render children()}</h2>
+	{#if elotag}<p class="elotag es">{@html o.sor(elotag)}</p>{/if}
+	<h2 {id}>{@html o.sor(cim)}</h2>
 </div>
 
 <style>

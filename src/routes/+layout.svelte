@@ -10,37 +10,26 @@
 	import '@fontsource/poppins/700.css';
 	import '../app.css';
 
-	import Fejlec from '$lib/components/Fejlec.svelte';
-	import Lablec from '$lib/components/Lablec.svelte';
-	import MobilFoglalasSav from '$lib/components/MobilFoglalasSav.svelte';
+	import { page } from '$app/state';
+	import OldalKeret from '$lib/components/OldalKeret.svelte';
+	import { alapTartalom } from '$lib/tartalom/alap';
+	import { tartalomBeallitasa } from '$lib/tartalom/kontextus';
 
-	let { children } = $props();
+	let { data, children } = $props();
+
+	const admin = $derived(page.route.id?.startsWith('/admin') ?? false);
+	const tartalom = $derived(data.tartalom ?? alapTartalom());
+	tartalomBeallitasa(() => tartalom);
 </script>
 
-<a class="ugras" href="#tartalom">Ugrás a tartalomra</a>
+<svelte:head>
+	{#if !admin}<script src="/oldal.js" defer></script>{/if}
+</svelte:head>
 
-<Fejlec />
-
-<main id="tartalom">
+{#if admin}
 	{@render children()}
-</main>
-
-<Lablec />
-<MobilFoglalasSav />
-
-<style>
-	.ugras {
-		position: absolute;
-		left: 16px;
-		top: -100px;
-		z-index: 100;
-		padding: 12px 18px;
-		background: var(--barna);
-		color: var(--krem);
-		border-radius: var(--sarok);
-	}
-
-	.ugras:focus {
-		top: 16px;
-	}
-</style>
+{:else}
+	<OldalKeret>
+		{@render children()}
+	</OldalKeret>
+{/if}

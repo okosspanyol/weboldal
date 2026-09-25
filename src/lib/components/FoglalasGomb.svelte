@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { booking } from '$lib/config';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { foglalasCel } from '$lib/tartalom/szoveg';
 
 	let {
-		szoveg = 'Időpontot foglalok',
+		szoveg = '',
 		teljes = false,
 		kozvetlen = false
 	}: {
+		/** Ha üres, az adminban megadott gombszöveg. */
 		szoveg?: string;
 		/** Teljes szélességű gomb (mobilon). */
 		teljes?: boolean;
@@ -14,20 +15,20 @@
 		kozvetlen?: boolean;
 	} = $props();
 
+	const o = oldal();
 	// Ha van foglalórendszer, oda visz; ha nincs, a foglalási részhez görget.
-	const kulso = $derived(!!booking.url && (kozvetlen || !booking.embedUrl));
-	const href = $derived(kulso ? booking.url : `${resolve('/')}#foglalas`);
+	const cel = $derived(foglalasCel(o.t, kozvetlen));
 </script>
 
 <a
 	class="gomb gomb-foglalas"
 	class:teljes
-	{href}
-	target={kulso ? '_blank' : undefined}
-	rel={kulso ? 'noopener' : undefined}
+	href={cel.href}
+	target={cel.kulso ? '_blank' : undefined}
+	rel={cel.kulso ? 'noopener' : undefined}
 >
-	{szoveg}
-	{#if kulso}<span class="csak-felolvasonak">(új lapon nyílik meg)</span>{/if}
+	{o.sima(szoveg || o.t.foglalas.gombSzoveg)}
+	{#if cel.kulso}<span class="csak-felolvasonak">(új lapon nyílik meg)</span>{/if}
 </a>
 
 <style>

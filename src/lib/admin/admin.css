@@ -1,0 +1,62 @@
+/* Az admin felület közös színei és gombjai (a weboldal arculatára hangolva, de semlegesebben). */
+:root {
+	--a-szoveg: #2f241e;
+	--a-halk: #7a6a60;
+	--a-vonal: #e6dcd2;
+	--a-halvany: #f4eee8;
+	--a-hatter: #faf7f3;
+	--a-feher: #ffffff;
+	--a-kiemelt: #c8553d;
+	--a-kiemelt-halvany: #fbece8;
+	--a-siker: #3f7a3a;
+	--a-hiba: #b3261e;
+	--a-figyelem: #7a4d00;
+	--a-figyelem-hatter: #fff4d6;
+}
+
+.a-gomb {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 36px;
+	padding: 0 14px;
+	border: 1px solid var(--a-vonal);
+	border-radius: 8px;
+	background: var(--a-feher);
+	font: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--a-szoveg);
+	text-decoration: none !important;
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		border-color 0.15s;
+}
+
+.a-gomb:hover:not(:disabled) {
+	background: var(--a-halvany);
+}
+
+.a-gomb:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.a-gomb.elsodleges {
+	background: var(--a-kiemelt);
+	border-color: var(--a-kiemelt);
+	color: #fff;
+	font-weight: 600;
+}
+
+.a-gomb.elsodleges:hover:not(:disabled) {
+	background: #b04832;
+}
+
+.uzenet.hiba {
+	background: #fdecea;
+	color: var(--a-hiba);
+}

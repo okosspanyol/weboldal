@@ -1,13 +1,18 @@
 <script lang="ts">
+	import type { ZaroAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import FoglalasGomb from '$lib/components/FoglalasGomb.svelte';
+
+	let { adat, horgony = '' }: { adat: ZaroAdat; horgony?: string } = $props();
+	const o = oldal();
 </script>
 
-<section class="zaro" aria-labelledby="zaro-cim">
+<section id={horgony || undefined} class="zaro" aria-labelledby="{horgony || 'zaro'}-cim">
 	<div class="wrap belso">
-		<p class="es elotag">¿Empezamos?</p>
-		<h2 id="zaro-cim">A spanyolod megvan. <span class="kiemelt">Most beszéljünk!</span></h2>
+		{#if adat.elotag.trim()}<p class="es elotag">{@html o.sor(adat.elotag)}</p>{/if}
+		<h2 id="{horgony || 'zaro'}-cim">{@html o.sor(adat.cim)}</h2>
 		<FoglalasGomb />
-		<p class="apro halk">30 perc · A2-es szinttől · nincs kötelező órarend</p>
+		{#if adat.apro.trim()}<p class="apro halk">{@html o.sor(adat.apro)}</p>{/if}
 	</div>
 </section>
 
@@ -34,7 +39,9 @@
 		max-width: 18ch;
 	}
 
-	.kiemelt {
+	h2 :global(strong),
+	h2 :global(.es) {
 		color: var(--terrakotta);
+		font-weight: inherit;
 	}
 </style>

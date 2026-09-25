@@ -1,28 +1,35 @@
 <script lang="ts">
-	import { contact, hasEmail, instagramDmUrl } from '$lib/config';
+	import type { SzintfelmeroAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
+	import { emailErvenyes, kulsoLink, link } from '$lib/tartalom/szoveg';
 
-	const dm = instagramDmUrl();
-	const href = dm || (hasEmail() ? `mailto:${contact.email}?subject=Szintfelmérés` : '');
+	let { adat, horgony = 'szint' }: { adat: SzintfelmeroAdat; horgony?: string } = $props();
+	const o = oldal();
+	const a = $derived(o.t.altalanos);
+	// Saját link → üzenet link (pl. Instagram) → e-mail
+	const href = $derived(
+		link(adat.gombLink) ||
+			link(a.uzenetLink) ||
+			(emailErvenyes(a.email) ? `mailto:${a.email}?subject=${encodeURIComponent('Szintfelmérés')}` : '')
+	);
 </script>
 
-<section class="szint" aria-labelledby="szint-cim">
+<section id={horgony || undefined} class="szint" aria-labelledby="{horgony || 'szint'}-cim">
 	<div class="wrap">
 		<div class="doboz">
-			<p class="es kerdes" aria-hidden="true">¿Qué nivel tengo?</p>
+			<p class="es kerdes" aria-hidden="true">{@html o.sor(adat.kerdes)}</p>
 			<div class="szoveg">
-				<h2 id="szint-cim">Nem tudod, melyik szinten vagy?</h2>
-				<p>
-					{#if dm}
-						Küldj egy rövid hangüzenetet spanyolul Instagramon, és megmondom.
-					{:else}
-						Küldj egy rövid hangüzenetet vagy pár mondatot spanyolul, és megmondom.
-					{/if}
-					Ha bizonytalan vagy, foglalj egy alkalmat — az első percekben kiderül.
-				</p>
+				<h2 id="{horgony || 'szint'}-cim">{@html o.sor(adat.cim)}</h2>
+				<p>{@html o.sor(adat.szoveg)}</p>
 			</div>
-			{#if href}
-				<a class="gomb gomb-masodlagos" {href} target={dm ? '_blank' : undefined} rel="noopener">
-					{dm ? 'Hangüzenetet küldök' : 'Írok neked'}
+			{#if href && adat.gombSzoveg.trim()}
+				<a
+					class="gomb gomb-masodlagos"
+					{href}
+					target={kulsoLink(href) ? '_blank' : undefined}
+					rel={kulsoLink(href) ? 'noopener' : undefined}
+				>
+					{o.sima(adat.gombSzoveg)}
 				</a>
 			{/if}
 		</div>

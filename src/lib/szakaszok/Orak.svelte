@@ -1,77 +1,57 @@
 <script lang="ts">
+	import type { OrakAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const szalak = [
-		{
-			cim: 'Szóbeli vizsgafelkészítés',
-			es: 'Examen oral',
-			kinek: 'a BGE üzleti spanyol B2 szóbeli vizsgára készülsz.',
-			pontok: [
-				'Gyakoroljuk a szóbeli részeit: szakmai beszélgetés, szövegismertetés, prezentáció, szituációs társalgás.',
-				'Vizsgaszerű kérdéseket kapsz a 14 üzleti témából.',
-				'Megtanulod, mit mondj, ha elakadsz, és hogyan tartsd a szót.',
-				'Minden óra végén rövid visszajelzést kapsz: mi ment jól, min dolgozz.'
-			],
-			szin: 'vizsga'
-		},
-		{
-			cim: 'Munka Spanyolországban',
-			es: 'Trabajar en España',
-			kinek: 'Spanyolországban szeretnél dolgozni vagy spanyol cégnél jelentkeznél.',
-			pontok: [
-				'Bemutatkozás, szakmai útad és terveid elmondása magabiztosan.',
-				'Állásinterjú-gyakorlás a leggyakoribb kérdésekkel.',
-				'Munkahelyi helyzetek: megbeszélés, telefonhívás, ügyfélkapcsolat.',
-				'Mit jelent a spanyol udvariasság és üzleti kultúra a gyakorlatban.'
-			],
-			szin: 'munka'
-		}
-	];
+	let { adat, horgony = 'orak' }: { adat: OrakAdat; horgony?: string } = $props();
+	const o = oldal();
+	const h = $derived(horgony || 'orak');
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
 </script>
 
-<section id="orak" class="szakasz orak" aria-labelledby="orak-cim">
+<section id={horgony || undefined} class="szakasz orak" aria-labelledby="{h}-cim">
 	<div class="wrap">
 		<div class="fej">
-			<SzakaszCim id="orak-cim" elotag="Las clases">Egy üzleti nyelvtudás, két cél</SzakaszCim>
-			<p class="olvashato bevezeto">
-				Az üzleti spanyol két helyen nyit ajtót: a nyelvvizsgán és a spanyolországi munkahelyen.
-				Ugyanazokkal a helyzetekkel készülsz mindkettőre — aki a szóbelin jól mutatja be a szakmai
-				útját, az egy interjún is meg fogja állni a helyét.
-			</p>
+			<SzakaszCim id="{h}-cim" elotag={adat.elotag} cim={adat.cim} />
+			{#if adat.bevezeto.trim()}
+				<p class="olvashato bevezeto">{@html o.sor(adat.bevezeto)}</p>
+			{/if}
 		</div>
 
-		<div class="kartyak">
-			{#each szalak as szal, i (szal.cim)}
-				<article class="kartya {szal.szin}" aria-labelledby="szal-{i}">
-					<div class="kartya-fej">
-						<span class="sorszam">0{i + 1} / 0{szalak.length}</span>
-						<span class="es szal-es">{szal.es}</span>
-					</div>
-					<h3 id="szal-{i}">{szal.cim}</h3>
-					<p class="kinek"><strong>Neked szól, ha</strong> {szal.kinek}</p>
-					<ul>
-						{#each szal.pontok as pont (pont)}
-							<li>{pont}</li>
-						{/each}
-					</ul>
-				</article>
-			{/each}
-		</div>
-
-		<div class="miert">
-			<p class="harminc" aria-hidden="true">
-				<span class="szam">30</span>
-				<span class="perc">perc</span>
-			</p>
-			<div class="miert-szoveg">
-				<h3>Miért 30 perc?</h3>
-				<p class="olvashato">
-					Mert a rendszeresség többet ér, mint a hossz. Heti több rövid alkalom jobban rögzül, mint
-					egyetlen hosszú óra, és könnyebb beilleszteni egy teli napba: reggel munka előtt,
-					ebédszünetben vagy este. Te döntöd el, hányszor és mikor foglalsz.
-				</p>
+		{#if adat.kartyak.length}
+			<div class="kartyak">
+				{#each adat.kartyak as szal, i (i)}
+					<article class="kartya {szal.szin === 'munka' ? 'munka' : 'vizsga'}" aria-labelledby="{h}-szal-{i}">
+						<div class="kartya-fej">
+							<span class="sorszam">{ketjegyu(i + 1)} / {ketjegyu(adat.kartyak.length)}</span>
+							<span class="es szal-es">{@html o.sor(szal.es)}</span>
+						</div>
+						<h3 id="{h}-szal-{i}">{@html o.sor(szal.cim)}</h3>
+						{#if szal.kinek.trim()}
+							<p class="kinek"><strong>{o.sima(adat.kinekCimke)}</strong> {@html o.sor(szal.kinek)}</p>
+						{/if}
+						<ul>
+							{#each szal.pontok as pont, j (j)}
+								<li>{@html o.sor(pont)}</li>
+							{/each}
+						</ul>
+					</article>
+				{/each}
 			</div>
-		</div>
+		{/if}
+
+		{#if adat.miertCim.trim() || adat.miertSzoveg.trim()}
+			<div class="miert">
+				<p class="harminc" aria-hidden="true">
+					<span class="szam">{o.sima(adat.miertSzam)}</span>
+					<span class="perc">{o.sima(adat.miertEgyseg)}</span>
+				</p>
+				<div class="miert-szoveg">
+					<h3>{@html o.sor(adat.miertCim)}</h3>
+					<p class="olvashato">{@html o.sor(adat.miertSzoveg)}</p>
+				</div>
+			</div>
+		{/if}
 	</div>
 </section>
 

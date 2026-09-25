@@ -1,53 +1,42 @@
 <script lang="ts">
+	import type { OraMeneteAdat } from '$lib/tartalom/tipusok';
+	import { oldal } from '$lib/tartalom/kontextus';
 	import SzakaszCim from '$lib/components/SzakaszCim.svelte';
 
-	const lepesek = [
-		{
-			cim: 'Bemelegítés',
-			ido: '3–5 perc',
-			perc: 5,
-			szoveg: 'Kötetlen beszélgetés spanyolul.',
-			es: '¿Qué tal tu semana?'
-		},
-		{
-			cim: 'Gyakorlás',
-			ido: '20 perc',
-			perc: 20,
-			szoveg: 'Vizsgafeladat vagy munkahelyi szituáció, a te célod szerint.',
-			es: 'Hablemos de tu experiencia profesional.'
-		},
-		{
-			cim: 'Visszajelzés',
-			ido: '5 perc',
-			perc: 5,
-			szoveg: 'A legfontosabb javítások és hasznos kifejezések, amiket használhatsz.',
-			es: 'Muy bien. Prueba también así…'
-		}
-	];
+	let { adat, horgony = 'hogyan' }: { adat: OraMeneteAdat; horgony?: string } = $props();
+	const o = oldal();
+	const ketjegyu = (n: number) => String(n).padStart(2, '0');
 </script>
 
-<section id="hogyan" class="szakasz menete" aria-labelledby="menete-cim">
+<section id={horgony || undefined} class="szakasz menete" aria-labelledby="{horgony || 'menete'}-cim">
 	<div class="wrap">
-		<SzakaszCim id="menete-cim" elotag="Así es una clase">Hogyan zajlik egy óra?</SzakaszCim>
+		<SzakaszCim id="{horgony || 'menete'}-cim" elotag={adat.elotag} cim={adat.cim} />
 
-		<!-- Az óra 30 perce arányosan -->
+		<!-- Az óra hossza arányosan -->
 		<div class="idosav" aria-hidden="true">
-			{#each lepesek as lepes, i (lepes.cim)}
-				<span class="szelet s{i}" style:flex-grow={lepes.perc}>{lepes.ido}</span>
+			{#each adat.lepesek as lepes, i (i)}
+				<span class="szelet s{i % 3}" style:flex-grow={Math.max(Number(lepes.perc) || 1, 1)}
+					>{o.sima(lepes.ido)}</span
+				>
 			{/each}
 		</div>
 
 		<ol class="lepesek">
-			{#each lepesek as lepes, i (lepes.cim)}
+			{#each adat.lepesek as lepes, i (i)}
 				<li>
-					<span class="mezo" aria-hidden="true">0{i + 1}</span>
+					<span class="mezo" aria-hidden="true">{ketjegyu(i + 1)}</span>
 					<div class="lepes-szoveg">
-						<h3>{lepes.cim} <span class="ido">({lepes.ido})</span></h3>
-						<p>{lepes.szoveg}</p>
-						<p class="minta">
-							<span class="cimke">Minta</span>
-							<span class="es">{lepes.es}</span>
-						</p>
+						<h3>
+							{@html o.sor(lepes.cim)}
+							{#if lepes.ido.trim()}<span class="ido">({o.sima(lepes.ido)})</span>{/if}
+						</h3>
+						<p>{@html o.sor(lepes.szoveg)}</p>
+						{#if lepes.es.trim()}
+							<p class="minta">
+								<span class="cimke">{o.sima(adat.mintaCimke)}</span>
+								<span class="es">{@html o.sor(lepes.es)}</span>
+							</p>
+						{/if}
 					</div>
 				</li>
 			{/each}

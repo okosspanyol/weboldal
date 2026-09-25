@@ -1,11 +1,16 @@
-<!-- Mobilon a foglalás gomb a képernyő alján végig látszik. -->
+<!-- Mobilon a foglalás gomb a képernyő alján végig látszik (az adminban kikapcsolható). -->
 <script lang="ts">
+	import { oldal } from '$lib/tartalom/kontextus';
 	import FoglalasGomb from './FoglalasGomb.svelte';
+
+	const o = oldal();
 </script>
 
-<div class="sav">
-	<FoglalasGomb teljes />
-</div>
+{#if o.t.fejlec.mobilSav}
+	<div class="sav">
+		<FoglalasGomb teljes />
+	</div>
+{/if}
 
 <style>
 	.sav {
@@ -25,6 +30,10 @@
 			backdrop-filter: blur(8px);
 			-webkit-backdrop-filter: blur(8px);
 			border-top: 1px solid var(--vonal);
+		}
+
+		:global(body:has(.sav)) {
+			--mobil-sav: 76px;
 		}
 	}
 </style>
